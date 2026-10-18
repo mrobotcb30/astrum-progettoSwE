@@ -22,7 +22,7 @@ jobs:
             out="${out%.typ}.pdf"
             mkdir -p "$(dirname "$out")"
             echo "Compilo $f -> $out"
-            typst compile --root . --font-path Fonts --ignore-system-fonts "$f" "$out"
+            typst compile --root . --font-path . --ignore-system-fonts "$f" "$out"
           done < <(find . -name '*.typ' -not -path './.*' -not -path './Template/*' -not -name '_*' -print0)
 
           echo "PDF generati:"; find _site -name '*.pdf'
