@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: "Inter", sans-serif;
+  --bg-color: #F9FAFB;
+  --txt-color: #1F2937;
+  --light-accent-color: #2563EB;
+  --dark-accent-color: #1E3A87;
+  --deco-color: #E5E9ED;
+  --txt-gray-color: #626973;
+  --color-muted: #5b6773;
+  --color-line: #d3d9df;
+  --color-ok: #1f7a6d;
+  --color-warn: #b87900;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("Fonts/inter.woff2") format("woff2"),
+         url("Fonts/inter.ttf") format("ttf");      /* Fallback */
+    font-weight: 100 900;
+    font-display: swap;
+    font-style: normal;
+    font-variant-numeric: proportional-nums;
+    font-feature-settings: "cv05", "cv08";
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--txt-color);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--light-accent-color);
+  outline-offset: 2px;
+}
