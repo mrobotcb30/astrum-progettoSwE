@@ -75,8 +75,8 @@ export const baselines = [
   {
     id: 'RTB', title: 'Requirements and Technology Baseline',
     docs: [
-      { title: 'Analisi dei Requisiti', kind: 'tecnico', file: 'docs/RTB/analisi-requisiti.pdf', version: '0.1.0', updated: '2026-11-20' },
-      { title: 'Piano di Progetto', kind: 'gestionale', file: 'docs/RTB/piano-di-progetto.pdf', version: '0.1.0', updated: '2026-11-20' },
+      { title: 'Lettera Q&A per Sanmarco', kind: 'tecnico', file: 'Q&A-Conoscitivo_Sanmarco.pdf', version: '0.1.0', updated: '2026-11-20' },
+      { title: 'Verbale di prova', kind: 'gestionale', file: 'VI_15-11-2026.pdf', version: '0.1.0', updated: '2026-11-20' },
       { title: 'Piano di Qualifica', kind: 'gestionale', file: 'docs/RTB/piano-di-qualifica.pdf', version: '0.1.0', updated: '2026-11-20' },
       { title: 'Norme di Progetto', kind: 'interno', file: 'docs/RTB/norme-di-progetto.pdf', version: '0.1.0', updated: '2026-11-04' },
       { title: 'Glossario', kind: 'interno', file: 'docs/RTB/glossario.pdf', version: '0.1.0', updated: '2026-11-04' },
