@@ -1,0 +1,40 @@
+name: Compila Typst in PDF
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Permette anche l'avvio manuale
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Necessario se vuoi salvare i PDF generati nella repository
+
+    steps:
+      - name: Ottieni il codice sorgente
+        uses: actions/checkout@v4
+
+      - name: Configura Typst
+        uses: typst-community/setup-typst@v3
+        # Oppure puoi specificare una versione precisa, es: with: { typst-version: "0.11.0" }
+
+      - name: Trova e compila tutti i file Typst
+        run: |
+          echo "Inizio compilazione dei file Typst..."
+          
+          # Trova tutti i file .typ ricorsivamente (escludendo ad esempio la cartella .git o node_modules se presenti)
+          find . -name "*.typ" -not -path "*/.*" | while read -r file; do
+            echo "Compilazione di: $file"
+            
+            # Genera il nome del file di output (sostituisce .typ con .pdf)
+            output="${file%.typ}.pdf"
+            
+            # Compila con Typst
+            typst compile "$file" "$output"
+            
+            echo "Creato: $output"
+          done
