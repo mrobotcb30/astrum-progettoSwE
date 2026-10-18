@@ -1,4 +1,4 @@
-name: Compila Typst e pubblica su GitHub Pages
+name: Compila Typst e Pubblica Sito
 
 on:
   push:
@@ -10,12 +10,8 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Ottieni il codice sorgente
@@ -24,35 +20,34 @@ jobs:
       - name: Configura Typst
         uses: typst-community/setup-typst@v3
 
-      - name: Compila tutti i file Typst
+      - name: Compila i file Typst direttamente nella cartella del sito
         run: |
-          mkdir -p _site
+          # ⚙️ INSERISCI QUI IL NOME DELLA CARTELLA DEL TUO SITO (es. "sito", "docs", "public")
+          SITE_DIR="sito"
+          
+          echo "Inizio compilazione dei file Typst dentro la cartella del sito: $SITE_DIR..."
+          
           while IFS= read -r -d '' file; do
-            out="_site/${file%.typ}.pdf"
+            # Genera il percorso del PDF corrispondente dentro la cartella del sito
+            # (mantiene la stessa struttura di cartelle del file .typ sorgente)
+            out="${SITE_DIR}/${file#./}"
+            out="${out%.typ}.pdf"
+            
+            # Crea la cartella di destinazione se non esiste
             mkdir -p "$(dirname "$out")"
-            echo "Compilazione di: $file -> $out"
+            
+            echo "Compilazione: $file -> $out"
             typst compile --root . "$file" "$out"
-          done < <(find . -name "*.typ" -not -path "./.*" -not -path "./_site/*" -print0)
+          done < <(find . -name "*.typ" -not -path "./.*" -not -path "./${SITE_DIR}/*" -print0)
 
-      - name: Genera indice con i link ai PDF
-        run: |
-          {
-            echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>PDF</title></head><body><h1>Documenti</h1><ul>"
-            (cd _site && find . -name "*.pdf" | sort | sed 's|^\./||' | while read -r f; do
-              echo "<li><a href=\"$f\">$f</a></li>"
-            done)
-            echo "</ul></body></html>"
-          } > _site/index.html
-
-      - name: Carica il sito come artifact
+      - name: Carica la cartella del sito come artifact per GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: swe-dashboard # <-- Inserisci qui lo stesso nome della cartella del tuo sito
 
   deploy:
-    # Pubblica solo sui push (non sulle pull request)
     if: github.event_name != 'pull_request'
-    needs: build
+    needs: build-and-deploy
     runs-on: ubuntu-latest
     permissions:
       pages: write
