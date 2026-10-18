@@ -1,40 +1,66 @@
-name: Compila Typst in PDF
+name: Compila Typst e pubblica su GitHub Pages
 
 on:
   push:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # Permette anche l'avvio manuale
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write # Necessario se vuoi salvare i PDF generati nella repository
-
     steps:
       - name: Ottieni il codice sorgente
         uses: actions/checkout@v4
 
       - name: Configura Typst
         uses: typst-community/setup-typst@v3
-        # Oppure puoi specificare una versione precisa, es: with: { typst-version: "0.11.0" }
 
-      - name: Trova e compila tutti i file Typst
+      - name: Compila tutti i file Typst
         run: |
-          echo "Inizio compilazione dei file Typst..."
-          
-          # Trova tutti i file .typ ricorsivamente (escludendo ad esempio la cartella .git o node_modules se presenti)
-          find . -name "*.typ" -not -path "*/.*" | while read -r file; do
-            echo "Compilazione di: $file"
-            
-            # Genera il nome del file di output (sostituisce .typ con .pdf)
-            output="${file%.typ}.pdf"
-            
-            # Compila con Typst
-            typst compile "$file" "$output"
-            
-            echo "Creato: $output"
-          done
+          mkdir -p _site
+          while IFS= read -r -d '' file; do
+            out="_site/${file%.typ}.pdf"
+            mkdir -p "$(dirname "$out")"
+            echo "Compilazione di: $file -> $out"
+            typst compile --root . "$file" "$out"
+          done < <(find . -name "*.typ" -not -path "./.*" -not -path "./_site/*" -print0)
+
+      - name: Genera indice con i link ai PDF
+        run: |
+          {
+            echo "<!DOCTYPE html><html><head><meta charset='utf-8'><title>PDF</title></head><body><h1>Documenti</h1><ul>"
+            (cd _site && find . -name "*.pdf" | sort | sed 's|^\./||' | while read -r f; do
+              echo "<li><a href=\"$f\">$f</a></li>"
+            done)
+            echo "</ul></body></html>"
+          } > _site/index.html
+
+      - name: Carica il sito come artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    # Pubblica solo sui push (non sulle pull request)
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy su GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
