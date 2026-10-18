@@ -23,7 +23,7 @@ jobs:
       - name: Compila i file Typst direttamente nella cartella del sito
         run: |
           # ⚙️ INSERISCI QUI IL NOME DELLA CARTELLA DEL TUO SITO (es. "sito", "docs", "public")
-          SITE_DIR="sito"
+          SITE_DIR="swe-dashboard"
           
           echo "Inizio compilazione dei file Typst dentro la cartella del sito: $SITE_DIR..."
           
