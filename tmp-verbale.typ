@@ -6,8 +6,7 @@ Le variabili vengono istanziate all'inizio di ciascuna presentazione.
 // Set parametri di stile
 #let font = "Inter"
 
-#let logo = "/Assets/logo.svg"
-#let logo-ridotto = "/Assets/logo-ridotto.svg"
+#let logo = "logo.svg"
 
 #let deco-line = rgb("#E5E9ED")
 #let txt-color = rgb("#1F2937")
@@ -107,7 +106,7 @@ Le variabili vengono istanziate all'inizio di ciascuna presentazione.
       gutter: 0.5cm,
       align: horizon,
 
-      image("/Assets/logo-unipd.svg", height: 2cm),
+      image("logo-unipd.svg", height: 2cm),
       line(angle: 90deg, length: 2cm, stroke: 0.5pt + deco-line),
       image(logo, height: 1cm)
     )
