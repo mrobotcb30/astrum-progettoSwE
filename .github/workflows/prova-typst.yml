@@ -1,68 +1,38 @@
-name: Compila Typst e Pubblica Sito
+name: Compila e pubblica PDF
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
   contents: read
-
-env:
-  SITE_DIR: swe-dashboard
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: typst-community/setup-typst@v3
 
-      - name: Compila i documenti Typst
+      - name: Compila i documenti
         run: |
-          mkdir -p "$SITE_DIR/public/docs"
-          find . -name '*.typ' \
-            -not -path './.*' \
-            -not -path "./$SITE_DIR/*" \
-            -not -path '*/node_modules/*' \
-            -not -name '_*' \
-            -print0 | while IFS= read -r -d '' f; do
-              out="$SITE_DIR/public/docs/${f#./}"
-              out="${out%.typ}.pdf"
-              mkdir -p "$(dirname "$out")"
-              echo "Compilazione: $f -> $out"
-              typst compile --root . "$f" "$out"
-            done
-          echo "PDF generati:"
-          find "$SITE_DIR/public/docs" -name '*.pdf'
+          while IFS= read -r -d '' f; do
+            out="_site/docs/${f#./}"
+            out="${out%.typ}.pdf"
+            mkdir -p "$(dirname "$out")"
+            echo "Compilo $f -> $out"
+            typst compile --root . --font-path Fonts --ignore-system-fonts "$f" "$out"
+          done < <(find . -name '*.typ' -not -path './.*' -not -path './Template/*' -not -name '_*' -print0)
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: ${{ env.SITE_DIR }}/package-lock.json
-
-      - name: Installa dipendenze
-        working-directory: ${{ env.SITE_DIR }}
-        run: npm ci
-
-      - name: Build del sito
-        working-directory: ${{ env.SITE_DIR }}
-        run: npm run build
-        env:
-          VITE_BASE: /${{ github.event.repository.name }}/
+          echo "PDF generati:"; find _site -name '*.pdf'
 
       - uses: actions/configure-pages@v5
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ env.SITE_DIR }}/dist
+          path: _site
 
   deploy:
-    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
