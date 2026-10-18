@@ -21,16 +21,23 @@ jobs:
 
       - uses: typst-community/setup-typst@v3
 
-      # swe-dashboard/docs/RTB/foo.typ -> swe-dashboard/public/docs/RTB/foo.pdf
       - name: Compila i documenti Typst
         run: |
-          cd "$SITE_DIR"
-          find docs -name '*.typ' ! -path 'docs/_template/*' | while read -r f; do
-            out="public/${f%.typ}.pdf"
-            mkdir -p "$(dirname "$out")"
-            echo "Compilazione: $f -> $out"
-            typst compile --root docs "$f" "$out"
-          done
+          mkdir -p "$SITE_DIR/public/docs"
+          find . -name '*.typ' \
+            -not -path './.*' \
+            -not -path "./$SITE_DIR/*" \
+            -not -path '*/node_modules/*' \
+            -not -name '_*' \
+            -print0 | while IFS= read -r -d '' f; do
+              out="$SITE_DIR/public/docs/${f#./}"
+              out="${out%.typ}.pdf"
+              mkdir -p "$(dirname "$out")"
+              echo "Compilazione: $f -> $out"
+              typst compile --root . "$f" "$out"
+            done
+          echo "PDF generati:"
+          find "$SITE_DIR/public/docs" -name '*.pdf'
 
       - uses: actions/setup-node@v4
         with:
