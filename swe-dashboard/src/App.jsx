@@ -3,8 +3,8 @@ import { group } from './data'
 import Dashboard from './Dashboard'
 import Documents from './Documents'
 import Team from './Team'
-import Logo from './Assets/logo.svg'
-import LogoUniPD from './Assets/logo-unipd.svg'
+import Logo from '/public/Assets/logo.svg'
+import LogoUniPD from '/public/Assets/logo-unipd.svg'
 
 const tabs = [
   { id: 'cruscotto', label: 'Cruscotto', View: Dashboard },
@@ -30,14 +30,14 @@ export default function App() {
             <img src={LogoUniPD} className="h-15"></img>
             <span className="bg-(--deco-color) h-15 w-px"></span>
             <img src={Logo} className="h-7.5"></img>
-            </h1>
-          <p className="mt-2 text-sm text-(--txt-gray-color)">
+          </h1>
+          <p className="mt-2 text-sm text-(--txt-gray)">
             <span className="block">Progetto di Ingegneria del software</span>
             <span className="block">Università di Padova - A.A. 26 / 27</span>
           </p>
           <p className="mt-2 text-base">{group.capitolato} - proponente {group.proponente}</p>
         </div>
-        <nav aria-label="Sezioni" className="flex gap-1">
+        <nav aria-label="Sezioni" className="flex flex-wrap justify-center sm:justify-start gap-1">
           {tabs.map((t) => (
             t.id === tab ?
             <span key={t.id} href={`#${t.id}`} aria-current="page"
@@ -49,6 +49,14 @@ export default function App() {
               {t.label}
             </a>
           ))}
+          <div className="flex w-full justify-center gap-1 sm:w-auto sm:justify-start">
+            <a className="px-4 py-2 text-sm font-bold hover:bg-(--txt-color) hover:text-(--bg-color)" href={group.repo} target="_blank" rel="noreferrer">
+              <span className="fa-brands fa-github"></span>
+            </a>
+            <a className="px-4 py-2 text-sm font-bold hover:bg-(--red-color) hover:text-(--bg-color)" href={`mailto:${group.email}`} target="_blank" rel="noreferrer">
+              <span className="fa-regular fa-envelope"></span>
+            </a>
+          </div>
         </nav>
       </header>
       <main className="pt-8"><View /></main>

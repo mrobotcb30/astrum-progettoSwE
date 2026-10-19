@@ -1,42 +1,44 @@
 import { useState } from 'react'
-import { baselines, kinds } from './data'
-
-const base = import.meta.env.BASE_URL
+import { baselines, docsBase, kinds } from './data'
 
 export default function Documents() {
   const [bid, setBid] = useState(baselines[0].id)
-  const [open, setOpen] = useState(null)
   const baseline = baselines.find((b) => b.id === bid)
+  const selBid = baselines.find((b) => b.id === bid);
 
   return (
     <div>
-      <div role="tablist" className="flex gap-1">
+      <div role="tablist" className="flex flex-wrap justify-center sm:justify-start gap-1">
         {baselines.map((b) => (
-          <button key={b.id} role="tab" aria-selected={b.id === bid}
-            onClick={() => { setBid(b.id); setOpen(null) }}
-            className={`px-4 py-2 text-sm font-bold ${b.id === bid ? 'light-accent-color' : 'hover:deco-color'}`}>
+          b.id === bid ?
+          <span key={b.id} role="tab" aria-selected="true"
+            className={`px-4 py-2 text-sm font-bold text-(--light-accent-color) border-b border-(--light-accent-color)`}>
+            {b.id}
+          </span> :
+          <button key={b.id} role="tab"
+            onClick={() => { setBid(b.id) }}
+            className={`px-4 py-2 text-sm font-bold cursor-pointer hover:bg-(--deco-color)`}>
             {b.id}
           </button>
         ))}
       </div>
-      <p className="mt-3 text-sm text-muted">{baseline.title}</p>
 
-      <div className="mt-4 grid gap-6">
+      <div className="mt-4">
         <div className="space-y-5">
           {Object.entries(kinds).map(([k, label]) => {
             const docs = baseline.docs.filter((d) => d.kind === k)
             if (!docs.length) return null
             return (
               <section key={k}>
-                <h2 className="mb-1 text-sm font-bold text-muted">{label}</h2>
-                <ul className="divide-y divide-line bg-white">
+                <h2 className="mb-1 text-sm font-bold">{label}</h2>
+                <ul className="bg-white">
                   {docs.map((d) => (
-                    <li key={d.file} className={`flex items-center justify-between gap-3 p-3 ${open?.file === d.file ? 'border-l-4 border-unipd' : ''}`}>
+                    <li key={d.file} className={`flex items-center justify-between gap-3 p-3 border-b border-(--deco-color)`}>
                       <button className="text-left" onClick={() => setOpen(d)}>
                         <span className="block font-bold">{d.title}</span>
-                        <span className="text-sm text-muted">v{d.version} · {d.updated}</span>
+                        <span className="text-sm text-(--txt-gray)">v{d.version} - {new Date(d.updated).toLocaleDateString('it-IT')}</span>
                       </button>
-                      <a className="text-sm font-bold text-unipd underline" href={`${base}${d.file}`} target="_blank" rel="noreferrer">PDF</a>
+                      <a className="text-sm font-bold underline" href={`${docsBase}${selBid.path}${d.file}`} target="_blank" rel="noreferrer">PDF</a>
                     </li>
                   ))}
                 </ul>
