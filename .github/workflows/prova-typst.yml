@@ -1,21 +1,28 @@
-name: Compila e pubblica PDF
+name: Compila Typst e Pubblica Sito
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  SITE_DIR: swe-dashboard
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: typst-community/setup-typst@v3
 
-      - name: Compila i documenti
+      # swe-dashboard/docs/RTB/foo.typ -> swe-dashboard/public/docs/RTB/foo.pdf
+      - name: Compila i documenti Typst
         run: |
           while IFS= read -r -d '' f; do
             out="_site/docs/${f#./}"
@@ -27,12 +34,30 @@ jobs:
 
           echo "PDF generati:"; find _site -name '*.pdf'
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.SITE_DIR }}/package-lock.json
+
+      - name: Installa dipendenze
+        working-directory: ${{ env.SITE_DIR }}
+        run: npm ci
+
+      - name: Build del sito
+        working-directory: ${{ env.SITE_DIR }}
+        run: npm run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: ${{ env.SITE_DIR }}/dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
