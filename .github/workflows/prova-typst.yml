@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessario per leggere la data reale degli ultimi commit sui file
 
       - uses: typst-community/setup-typst@v3
 
@@ -37,13 +39,34 @@ jobs:
 
       - name: Genera index.html
         run: |
-          cd "$SITE_DIR/public/docs"
-          echo "<h1>Indice dei file</h1><ul>" > index.html
+          REPO_DIR="$PWD"
+          DOCS_DIR="$SITE_DIR/public/docs"
+          INDEX_FILE="$DOCS_DIR/index.html"
+
+          # Calcola il timestamp di 7 giorni fa (in secondi)
+          NOW=$(date +%s)
+          SEVEN_DAYS_AGO=$((NOW - 7 * 86400))
+
+          echo "<h1>Indice dei file</h1><ul>" > "$INDEX_FILE"
+
+          cd "$DOCS_DIR"
           find . -type f -name '*.pdf' | sort | while read -r f; do
-            file="${f#./}"
-            echo "<li><a href=\"$file\">$file</a></li>" >> index.html
+            pdf_rel="${f#./}"
+            typ_rel="${pdf_rel%.pdf}.typ"
+            tag=""
+
+            # Se esiste il file .typ di origine, recupera la data del suo ultimo commit su Git
+            if [ -f "$REPO_DIR/$typ_rel" ]; then
+              last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_rel")
+              if [ -n "$last_commit" ] && [ "$last_commit" -gt "$SEVEN_DAYS_AGO" ]; then
+                tag=" <strong>[Nuovo]</strong>"
+              fi
+            fi
+
+            echo "<li><a href=\"$pdf_rel\">$pdf_rel</a>$tag</li>" >> "$INDEX_FILE"
           done
-          echo "</ul>" >> index.html
+
+          echo "</ul>" >> "$INDEX_FILE"
 
       - uses: actions/setup-node@v4
         with:
