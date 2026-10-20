@@ -58,26 +58,38 @@ jobs:
             file_name=$(basename "$pdf_rel")
             date_tag=""
 
-            # Quando cambia cartella, chiude la lista precedente e ne apre una nuova con il titolo della cartella
+            # Quando cambia cartella, chiude la lista precedente e ne apre una nuova
             if [ "$dir_name" != "$current_dir" ]; then
               if [ -n "$current_dir" ]; then
                 echo '</ul>' >> index.html
               fi
               current_dir="$dir_name"
               
+              # Titolo della cartella: testo normale (non h3) con margini minimi
               if [ "$dir_name" = "." ]; then
-                echo '<h3>/</h3>' >> index.html
+                echo '<p style="margin: 1rem 0 0.2rem 0;">/</p>' >> index.html
               else
-                echo "<h3>$dir_name/</h3>" >> index.html
+                echo "<p style=\"margin: 1rem 0 0.2rem 0;\">$dir_name/</p>" >> index.html
               fi
-              echo '<ul style="list-style-type: none; padding-left: 1rem;">' >> index.html
+              # margin: 0 toglie il vuoto tra il titolo e il primo file
+              echo '<ul style="list-style-type: none; padding-left: 1rem; margin: 0;">' >> index.html
             fi
 
-            # Calcolo data
+            # 1. Calcola typ_rel PRIMA di usarlo nel controllo
+            typ_rel="${pdf_rel%.pdf}.typ"
+            typ_file=""
+
             if [ -f "$REPO_DIR/$typ_rel" ]; then
-              typ_rel="${pdf_rel%.pdf}.typ"
-              last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_rel")
-              last_date=$(git -C "$REPO_DIR" log -1 --date=format:'%d/%m/%Y' --format="%cd" -- "$typ_rel")
+              typ_file="$REPO_DIR/$typ_rel"
+            else
+              # Cerca il file .typ nel repo se si trova in una cartella differente
+              typ_file=$(find "$REPO_DIR" -type f -name "${file_name%.pdf}.typ" -not -path '*/.*' | head -n 1)
+            fi
+
+            # 2. Se ha trovato il file .typ, estrae la data da Git
+            if [ -n "$typ_file" ]; then
+              last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_file")
+              last_date=$(git -C "$REPO_DIR" log -1 --date=format:'%d/%m/%Y' --format="%cd" -- "$typ_file")
 
               if [ -n "$last_commit" ]; then
                 if [ "$last_commit" -gt "$SEVEN_DAYS_AGO" ]; then
@@ -88,11 +100,15 @@ jobs:
               fi
             fi
 
-            # Stampa solo il nome del file, mantenendo il link corretto al percorso completo
-            echo "<li>$date_tag - <a href=\"$pdf_rel\">$file_name</a></li>" >> index.html
+            # 3. Stampa riga
+            if [ -n "$date_tag" ]; then
+              echo "<li>$date_tag - <a href=\"$pdf_rel\">$file_name</a></li>" >> index.html
+            else
+              echo "<li><a href=\"$pdf_rel\">$file_name</a></li>" >> index.html
+            fi
           done
 
-          # Chiude l'ultimo <ul> se sono stati trovati file
+          # Chiude l'ultimo <ul>
           if [ -n "$current_dir" ]; then
             echo '</ul>' >> index.html
           fi
