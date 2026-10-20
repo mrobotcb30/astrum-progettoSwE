@@ -43,20 +43,39 @@ jobs:
           DOCS_DIR="$REPO_DIR/$SITE_DIR/public/docs"
           mkdir -p "$DOCS_DIR"
 
-          # Calcola il timestamp di 7 giorni fa (in secondi)
           NOW=$(date +%s)
           SEVEN_DAYS_AGO=$((NOW - 7 * 86400))
 
           cd "$DOCS_DIR"
 
-          echo '<h1>Indice dei file</h1><ul style="list-style-type: none; padding-left: 20px;">' > index.html
+          echo '<h1>Indice dei file</h1>' > index.html
+
+          current_dir=""
 
           find . -type f -name '*.pdf' | sort | while read -r f; do
             pdf_rel="${f#./}"
-            typ_rel="${pdf_rel%.pdf}.typ"
-            tag=""
+            dir_name=$(dirname "$pdf_rel")
+            file_name=$(basename "$pdf_rel")
+            date_tag=""
 
+            # Quando cambia cartella, chiude la lista precedente e ne apre una nuova con il titolo della cartella
+            if [ "$dir_name" != "$current_dir" ]; then
+              if [ -n "$current_dir" ]; then
+                echo '</ul>' >> index.html
+              fi
+              current_dir="$dir_name"
+              
+              if [ "$dir_name" = "." ]; then
+                echo '<h3>/</h3>' >> index.html
+              else
+                echo "<h3>$dir_name/</h3>" >> index.html
+              fi
+              echo '<ul style="list-style-type: none; padding-left: 1rem;">' >> index.html
+            fi
+
+            # Calcolo data
             if [ -f "$REPO_DIR/$typ_rel" ]; then
+              typ_rel="${pdf_rel%.pdf}.typ"
               last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_rel")
               last_date=$(git -C "$REPO_DIR" log -1 --date=format:'%d/%m/%Y' --format="%cd" -- "$typ_rel")
 
@@ -69,10 +88,14 @@ jobs:
               fi
             fi
 
-            echo "<li>$date_tag - <a href=\"$pdf_rel\">$pdf_rel</a></li>" >> index.html
+            # Stampa solo il nome del file, mantenendo il link corretto al percorso completo
+            echo "<li>$date_tag - <a href=\"$pdf_rel\">$file_name</a></li>" >> index.html
           done
 
-          echo "</ul>" >> index.html
+          # Chiude l'ultimo <ul> se sono stati trovati file
+          if [ -n "$current_dir" ]; then
+            echo '</ul>' >> index.html
+          fi
 
       - uses: actions/setup-node@v4
         with:
