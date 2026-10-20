@@ -49,7 +49,7 @@ jobs:
 
           cd "$DOCS_DIR"
 
-          echo "<h1>Indice dei file</h1>" > index.html
+          echo "<h1>Indice dei file</h1><ul style="list-style-type: none; padding-left: 20px;">" > index.html
 
           find . -type f -name '*.pdf' | sort | while read -r f; do
             pdf_rel="${f#./}"
@@ -69,8 +69,10 @@ jobs:
               fi
             fi
 
-            echo "$date_tag - <a style="margin-left: 1rem" href=\"$pdf_rel\">$pdf_rel</a>" >> index.html
+            echo "<li>$date_tag - <a href=\"$pdf_rel\">$pdf_rel</a></li>" >> index.html
           done
+
+          echo "</ul>" >> index.html
 
       - uses: actions/setup-node@v4
         with:
