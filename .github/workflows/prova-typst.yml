@@ -35,6 +35,16 @@ jobs:
 
           echo "PDF generati:"; find "$SITE_DIR/public/docs" -name '*.pdf'
 
+      - name: Genera index.html
+        run: |
+          cd "$SITE_DIR/public/docs"
+          echo "<h1>Indice dei file</h1><ul>" > index.html
+          find . -type f -name '*.pdf' | sort | while read -r f; do
+            file="${f#./}"
+            echo "<li><a href=\"$file\">$file</a></li>" >> index.html
+          done
+          echo "</ul>" >> index.html
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
