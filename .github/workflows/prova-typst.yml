@@ -40,22 +40,23 @@ jobs:
       - name: Genera index.html
         run: |
           REPO_DIR="$PWD"
-          DOCS_DIR="$SITE_DIR/public/docs"
-          INDEX_FILE="$DOCS_DIR/index.html"
+          DOCS_DIR="$REPO_DIR/$SITE_DIR/public/docs"
+          mkdir -p "$DOCS_DIR"
 
           # Calcola il timestamp di 7 giorni fa (in secondi)
           NOW=$(date +%s)
           SEVEN_DAYS_AGO=$((NOW - 7 * 86400))
 
-          echo "<h1>Indice dei file</h1><ul>" > "$INDEX_FILE"
-
           cd "$DOCS_DIR"
+
+          echo "<h1>Indice dei file</h1><ul>" > index.html
+
           find . -type f -name '*.pdf' | sort | while read -r f; do
             pdf_rel="${f#./}"
             typ_rel="${pdf_rel%.pdf}.typ"
             tag=""
 
-            # Se esiste il file .typ di origine, recupera la data del suo ultimo commit su Git
+            # Se esiste il file .typ di origine nel repo, controlla la data dell'ultimo commit
             if [ -f "$REPO_DIR/$typ_rel" ]; then
               last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_rel")
               if [ -n "$last_commit" ] && [ "$last_commit" -gt "$SEVEN_DAYS_AGO" ]; then
@@ -63,10 +64,10 @@ jobs:
               fi
             fi
 
-            echo "<li><a href=\"$pdf_rel\">$pdf_rel</a>$tag</li>" >> "$INDEX_FILE"
+            echo "<li><a href=\"$pdf_rel\">$pdf_rel</a>$tag</li>" >> index.html
           done
 
-          echo "</ul>" >> "$INDEX_FILE"
+          echo "</ul>" >> index.html
 
       - uses: actions/setup-node@v4
         with:
