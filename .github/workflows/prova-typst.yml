@@ -49,25 +49,28 @@ jobs:
 
           cd "$DOCS_DIR"
 
-          echo "<h1>Indice dei file</h1><ul>" > index.html
+          echo "<h1>Indice dei file</h1>" > index.html
 
           find . -type f -name '*.pdf' | sort | while read -r f; do
             pdf_rel="${f#./}"
             typ_rel="${pdf_rel%.pdf}.typ"
             tag=""
 
-            # Se esiste il file .typ di origine nel repo, controlla la data dell'ultimo commit
             if [ -f "$REPO_DIR/$typ_rel" ]; then
               last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_rel")
-              if [ -n "$last_commit" ] && [ "$last_commit" -gt "$SEVEN_DAYS_AGO" ]; then
-                tag=" <strong>[Nuovo]</strong>"
+              last_date=$(git -C "$REPO_DIR" log -1 --date=format:'%d/%m/%Y' --format="%cd" -- "$typ_rel")
+
+              if [ -n "$last_commit" ]; then
+                if [ "$last_commit" -gt "$SEVEN_DAYS_AGO" ]; then
+                  date_tag="<strong>$last_date</strong>"
+                else
+                  date_tag="$last_date"
+                fi
               fi
             fi
 
-            echo "<li><a href=\"$pdf_rel\">$pdf_rel</a>$tag</li>" >> index.html
+            echo "$date_tag - <a style="margin-left: 1rem" href=\"$pdf_rel\">$pdf_rel</a>" >> index.html
           done
-
-          echo "</ul>" >> index.html
 
       - uses: actions/setup-node@v4
         with:
