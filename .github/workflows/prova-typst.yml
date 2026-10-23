@@ -56,7 +56,7 @@ jobs:
           tree = {'files': [], 'subdirs': {}}
           
           def get_typ_file(pdf_rel_path, pdf_name):
-              # 1. Prova a cercare il .typ con lo stesso percorso relativo rispetto alla root del repo
+              # 1. Prova a cercare il .typ con lo stesso percorso relativo
               typ_rel = pdf_rel_path.rsplit('.', 1)[0] + '.typ'
               exact_path = os.path.join(repo_dir, typ_rel)
               if os.path.isfile(exact_path):
@@ -111,17 +111,11 @@ jobs:
                       
                   current['files'].append(file_info)
           
-          # 2. Genera l'HTML
+          # 2. Genera l'HTML (Senza stili)
           html = [
               "<!DOCTYPE html>",
               "<html><head><meta charset='utf-8'>",
               "<title>Indice Documenti</title>",
-              "<style>",
-              "  body { font-family: sans-serif; padding: 2rem; line-height: 1.6; }",
-              "  ul { list-style-type: none; padding-left: 1.5rem; border-left: 1px solid #ccc; }",
-              "  .folder { font-weight: bold; margin-top: 1rem; color: #333; }",
-              "  .file-item { margin: 0.3rem 0; }",
-              "</style>",
               "</head><body>",
               "<h1>Indice dei documenti</h1>"
           ]
@@ -129,7 +123,7 @@ jobs:
           def render_node(node, is_root=True):
               # Ordina cartelle alfabeticamente
               for d in sorted(node['subdirs'].keys()):
-                  html.append(f'<div class="folder">📁 {d}</div>')
+                  html.append(f'<p><strong>{d}</strong></p>')
                   html.append('<ul>')
                   render_node(node['subdirs'][d], False)
                   html.append('</ul>')
@@ -144,16 +138,14 @@ jobs:
                       else:
                           date_tag = f"{f['date_str']} - "
                   
-                  html.append(f"<li class='file-item'>📄 {date_tag}<a href='{f['rel_path']}'>{f['name']}</a></li>")
+                  html.append(f"<li>{date_tag}<a href='{f['rel_path']}'>{f['name']}</a></li>")
           
           if tree['files'] or tree['subdirs']:
-              html.append('<div style="margin-top: 1rem;">')
               if tree['files']:
                   html.append('<ul>')
               render_node(tree)
               if tree['files']:
                   html.append('</ul>')
-              html.append('</div>')
           
           html.append("</body></html>")
           
