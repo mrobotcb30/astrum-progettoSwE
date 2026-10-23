@@ -39,79 +39,131 @@ jobs:
 
       - name: Genera index.html
         run: |
-          REPO_DIR="$PWD"
-          DOCS_DIR="$REPO_DIR/$SITE_DIR/public/docs"
-          mkdir -p "$DOCS_DIR"
-
-          NOW=$(date +%s)
-          SEVEN_DAYS_AGO=$((NOW - 7 * 86400))
-
-          cd "$DOCS_DIR"
-
-          echo '<h1>Indice dei file</h1>' > index.html
-
-          current_dir=""
-
-          find . -type f -name '*.pdf' | sort | while read -r f; do
-            pdf_rel="${f#./}"
-            dir_name=$(dirname "$pdf_rel")
-            file_name=$(basename "$pdf_rel")
-            date_tag=""
-
-            # Quando cambia cartella, chiude la lista precedente e ne apre una nuova
-            if [ "$dir_name" != "$current_dir" ]; then
-              if [ -n "$current_dir" ]; then
-                echo '</ul>' >> index.html
-              fi
-              current_dir="$dir_name"
+          cat << 'EOF' > build_index.py
+          import os, time, subprocess
+          
+          # Impostazioni base
+          repo_dir = os.environ.get('GITHUB_WORKSPACE', os.getcwd())
+          site_dir = os.environ.get('SITE_DIR', 'swe-dashboard')
+          docs_dir = os.path.join(repo_dir, site_dir, 'public', 'docs')
+          now = time.time()
+          seven_days_ago = now - (7 * 86400)
+          
+          # Assicura che la cartella docs esista
+          os.makedirs(docs_dir, exist_ok=True)
+          
+          # Struttura dell'albero delle cartelle
+          tree = {'files': [], 'subdirs': {}}
+          
+          def get_typ_file(pdf_rel_path, pdf_name):
+              # 1. Prova a cercare il .typ con lo stesso percorso relativo rispetto alla root del repo
+              typ_rel = pdf_rel_path.rsplit('.', 1)[0] + '.typ'
+              exact_path = os.path.join(repo_dir, typ_rel)
+              if os.path.isfile(exact_path):
+                  return exact_path
               
-              # Titolo della cartella: testo normale (non h3) con margini minimi
-              if [ "$dir_name" = "." ]; then
-                echo '<p style="margin: 1rem 0 0.2rem 0;">/</p>' >> index.html
-              else
-                echo "<p style=\"margin: 1rem 0 0.2rem 0;\">$dir_name/</p>" >> index.html
-              fi
-              # margin: 0 toglie il vuoto tra il titolo e il primo file
-              echo '<ul style="list-style-type: none; padding-left: 1rem; margin: 0;">' >> index.html
-            fi
-
-            # 1. Calcola typ_rel PRIMA di usarlo nel controllo
-            typ_rel="${pdf_rel%.pdf}.typ"
-            typ_file=""
-
-            if [ -f "$REPO_DIR/$typ_rel" ]; then
-              typ_file="$REPO_DIR/$typ_rel"
-            else
-              # Cerca il file .typ nel repo se si trova in una cartella differente
-              typ_file=$(find "$REPO_DIR" -type f -name "${file_name%.pdf}.typ" -not -path '*/.*' | head -n 1)
-            fi
-
-            # 2. Se ha trovato il file .typ, estrae la data da Git
-            if [ -n "$typ_file" ]; then
-              last_commit=$(git -C "$REPO_DIR" log -1 --format="%ct" -- "$typ_file")
-              last_date=$(git -C "$REPO_DIR" log -1 --date=format:'%d/%m/%Y' --format="%cd" -- "$typ_file")
-
-              if [ -n "$last_commit" ]; then
-                if [ "$last_commit" -gt "$SEVEN_DAYS_AGO" ]; then
-                  date_tag="<strong>$last_date</strong>"
-                else
-                  date_tag="$last_date"
-                fi
-              fi
-            fi
-
-            # 3. Stampa riga
-            if [ -n "$date_tag" ]; then
-              echo "<li>$date_tag - <a href=\"$pdf_rel\">$file_name</a></li>" >> index.html
-            else
-              echo "<li><a href=\"$pdf_rel\">$file_name</a></li>" >> index.html
-            fi
-          done
-
-          # Chiude l'ultimo <ul>
-          if [ -n "$current_dir" ]; then
-            echo '</ul>' >> index.html
-          fi
+              # 2. Fallback: cerca il file .typ in tutto il repo
+              target_name = pdf_name.rsplit('.', 1)[0] + '.typ'
+              for root, dirs, files in os.walk(repo_dir):
+                  # Salta cartelle nascoste o di build per velocizzare
+                  dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', 'dist', 'public']]
+                  if target_name in files:
+                      return os.path.join(root, target_name)
+              return None
+          
+          def get_git_info(filepath):
+              try:
+                  ts = subprocess.check_output(['git', '-C', repo_dir, 'log', '-1', '--format=%ct', '--', filepath]).decode('utf-8').strip()
+                  if not ts: return 0, ""
+                  date_str = subprocess.check_output(['git', '-C', repo_dir, 'log', '-1', '--date=format:%d/%m/%Y', '--format=%cd', '--', filepath]).decode('utf-8').strip()
+                  return int(ts), date_str
+              except:
+                  return 0, ""
+          
+          # 1. Legge tutti i PDF e li inserisce nell'albero
+          for root, dirs, files in os.walk(docs_dir):
+              for f in files:
+                  if not f.endswith('.pdf'): continue
+                  
+                  pdf_path = os.path.join(root, f)
+                  rel_pdf = os.path.relpath(pdf_path, docs_dir)
+                  rel_pdf_web = rel_pdf.replace(os.sep, '/') 
+                  
+                  typ_path = get_typ_file(rel_pdf, f)
+                  ts, date_str = (0, "")
+                  if typ_path:
+                      ts, date_str = get_git_info(typ_path)
+                      
+                  file_info = {
+                      'name': f,
+                      'rel_path': rel_pdf_web,
+                      'timestamp': ts,
+                      'date_str': date_str
+                  }
+                  
+                  # Naviga/costruisce l'albero
+                  parts = rel_pdf.split(os.sep)
+                  current = tree
+                  for part in parts[:-1]:
+                      if part not in current['subdirs']:
+                          current['subdirs'][part] = {'files': [], 'subdirs': {}}
+                      current = current['subdirs'][part]
+                      
+                  current['files'].append(file_info)
+          
+          # 2. Genera l'HTML
+          html = [
+              "<!DOCTYPE html>",
+              "<html><head><meta charset='utf-8'>",
+              "<title>Indice Documenti</title>",
+              "<style>",
+              "  body { font-family: sans-serif; padding: 2rem; line-height: 1.6; }",
+              "  ul { list-style-type: none; padding-left: 1.5rem; border-left: 1px solid #ccc; }",
+              "  .folder { font-weight: bold; margin-top: 1rem; color: #333; }",
+              "  .file-item { margin: 0.3rem 0; }",
+              "</style>",
+              "</head><body>",
+              "<h1>Indice dei documenti</h1>"
+          ]
+          
+          def render_node(node, is_root=True):
+              # Ordina cartelle alfabeticamente
+              for d in sorted(node['subdirs'].keys()):
+                  html.append(f'<div class="folder">📁 {d}</div>')
+                  html.append('<ul>')
+                  render_node(node['subdirs'][d], False)
+                  html.append('</ul>')
+                  
+              # Ordina file per data decrescente (i più recenti prima)
+              sorted_files = sorted(node['files'], key=lambda x: x['timestamp'], reverse=True)
+              for f in sorted_files:
+                  date_tag = ""
+                  if f['timestamp'] > 0:
+                      if f['timestamp'] > seven_days_ago:
+                          date_tag = f"<strong>{f['date_str']}</strong> - "
+                      else:
+                          date_tag = f"{f['date_str']} - "
+                  
+                  html.append(f"<li class='file-item'>📄 {date_tag}<a href='{f['rel_path']}'>{f['name']}</a></li>")
+          
+          if tree['files'] or tree['subdirs']:
+              html.append('<div style="margin-top: 1rem;">')
+              if tree['files']:
+                  html.append('<ul>')
+              render_node(tree)
+              if tree['files']:
+                  html.append('</ul>')
+              html.append('</div>')
+          
+          html.append("</body></html>")
+          
+          # Scrive index.html dentro swe-dashboard/public/docs/
+          with open(os.path.join(docs_dir, 'index.html'), 'w', encoding='utf-8') as f:
+              f.write("\n".join(html))
+          EOF
+          
+          # Esegue lo script
+          python3 build_index.py
 
       - uses: actions/setup-node@v4
         with:
