@@ -9,7 +9,7 @@ import LogoUniPD from '/public/Assets/logo-unipd.svg'
 const tabs = [
   { id: 'cruscotto', label: 'Dashboard', View: Dashboard },
   { id: 'documenti', label: 'Documenti', View: Documents },
-  { id: 'gruppo', label: 'Gruppo', View: Team },
+  { id: 'team', label: 'Team', View: Team },
 ]
 const read = () => tabs.find((t) => t.id === location.hash.slice(1))?.id ?? 'cruscotto'
 

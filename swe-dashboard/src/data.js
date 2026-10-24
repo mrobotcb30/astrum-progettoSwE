@@ -33,19 +33,19 @@ export const plannedHours = {
 
 // Ore consuntivate per persona e ruolo
 export const members = [
-  { name: 'Corrado Bacco', matr:'2148615', github: 'mrobotcb30', currentRole: '',
+  { name: 'Corrado Bacco', matr:'2148615', github: 'mrobotcb30', currentRole: 'Analista',
     hours: { responsabile: 40, amministratore: 0, analista: 10, progettista: 0, programmatore: 4, verificatore: 6 } },
-  { name: 'Gianluca Bacco', matr:'2111937', github: 'GianlucaBacco', currentRole: '',
+  { name: 'Gianluca Bacco', matr:'2111937', github: 'GianlucaBacco', currentRole: 'Analista',
     hours: { responsabile: 0, amministratore: 8, analista: 14, progettista: 0, programmatore: 6, verificatore: 4 } },
-  { name: 'Gianluca Brotto', matr:'2148626', github: 'Gianluca-Br', currentRole: '',
+  { name: 'Gianluca Brotto', matr:'2148626', github: 'Gianluca-Br', currentRole: 'Analista',
     hours: { responsabile: 0, amministratore: 12, analista: 8, progettista: 4, programmatore: 6, verificatore: 2 } },
-  { name: 'Matteo De Col', matr:'2148619', github: 'vSmatt', currentRole: '',
+  { name: 'Matteo De Col', matr:'2148619', github: 'vSmatt', currentRole: 'Analista',
     hours: { responsabile: 4, amministratore: 0, analista: 6, progettista: 0, programmatore: 16, verificatore: 4 } },
-  { name: 'Filippo De Guio', matr:'2113177', github: 'degghi24', currentRole: '',
+  { name: 'Filippo De Guio', matr:'2113177', github: 'degghi24', currentRole: 'Responsabile',
     hours: { responsabile: 0, amministratore: 4, analista: 12, progettista: 0, programmatore: 6, verificatore: 10 } },
-  { name: 'Samuele Gobbi', matr:'2148004', github: 'Smoker1210', currentRole: '',
+  { name: 'Samuele Gobbi', matr:'2148004', github: 'Smoker1210', currentRole: 'Analista',
     hours: { responsabile: 0, amministratore: 0, analista: 10, progettista: 8, programmatore: 8, verificatore: 4 } },
-  { name: 'Thomas Morettin', matr:'2111001', github: 'thomasmorettin', currentRole: '',
+  { name: 'Thomas Morettin', matr:'2111001', github: 'thomasmorettin', currentRole: 'Analista',
     hours: { responsabile: 6, amministratore: 2, analista: 12, progettista: 2, programmatore: 6, verificatore: 4 } },
 ]
 
