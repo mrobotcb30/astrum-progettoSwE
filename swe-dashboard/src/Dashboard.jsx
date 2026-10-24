@@ -130,7 +130,7 @@ export default function Dashboard() {
                 <YAxis width={32} />
                 <Tooltip labelStyle={{ fontWeight: "bold" }} />
                 <Legend />
-                <Bar dataKey="Pianificate" fill="#626973" />
+                <Bar dataKey="Pianificate" fill="#81878F" />
                 <Bar dataKey="Consuntivate" fill="#1E3A87" />
               </BarChart>
             </ResponsiveContainer>
