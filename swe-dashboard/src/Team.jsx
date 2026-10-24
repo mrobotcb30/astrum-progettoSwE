@@ -6,7 +6,7 @@ const initials = (n) => n.split(' ').map((p) => p[0]).slice(0, 2).join('')
 export default function Team() {
   return (
     <div>
-      <ul className="grid gap-px bg-(--deco-color) sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-px sm:grid-cols-2 lg:grid-cols-3">
         {members.map((m) => {
           const mainRole = Object.entries(m.hours).sort((a, b) => b[1] - a[1])[0]
           return (

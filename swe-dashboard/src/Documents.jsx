@@ -30,7 +30,7 @@ export default function Documents() {
             if (!docs.length) return null
             return (
               <section key={k}>
-                <h2 className="mb-1 text-sm font-bold txt-(--light-accent-color)">{label}</h2>
+                <h2 className="mb-1 text-sm font-bold text-(--light-accent-color)">{label}</h2>
                 <ul className="bg-white">
                   {docs.map((d) => (
                     <li key={d.file} className={`flex items-center justify-between gap-3 p-3 border-b border-(--deco-color)`}>

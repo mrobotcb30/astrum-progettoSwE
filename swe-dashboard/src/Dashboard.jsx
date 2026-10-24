@@ -87,7 +87,9 @@ export default function Dashboard() {
               <CartesianGrid vertical={false} stroke="#D3D9DF" />
               <XAxis dataKey="matricola" interval={0} tick={{ fontSize: 12 }} />
               <YAxis width={32} domain={[0, hourBounds.max + 5]} />
-              <Tooltip labelFormatter={(value, payload) => {
+              <Tooltip
+                labelStyle={{ fontWeight: "bold" }}
+                labelFormatter={(value, payload) => {
                   const item = payload?.[0]?.payload;
                   return item ? `${item.name}` : value; 
                 }}
@@ -126,7 +128,7 @@ export default function Dashboard() {
                 <CartesianGrid vertical={false} stroke="#D3D9DF" />
                 <XAxis dataKey="ruolo" interval={0} tick={{ fontSize: 12 }} />
                 <YAxis width={32} />
-                <Tooltip />
+                <Tooltip labelStyle={{ fontWeight: "bold" }} />
                 <Legend />
                 <Bar dataKey="Pianificate" fill="#E5E9ED" />
                 <Bar dataKey="Consuntivate" fill="#1E3A87" />

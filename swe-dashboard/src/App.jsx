@@ -7,7 +7,7 @@ import Logo from '/public/Assets/logo.svg'
 import LogoUniPD from '/public/Assets/logo-unipd.svg'
 
 const tabs = [
-  { id: 'cruscotto', label: 'Cruscotto', View: Dashboard },
+  { id: 'cruscotto', label: 'Dashboard', View: Dashboard },
   { id: 'documenti', label: 'Documenti', View: Documents },
   { id: 'gruppo', label: 'Gruppo', View: Team },
 ]
@@ -53,7 +53,7 @@ export default function App() {
             <a className="px-4 py-2 text-sm font-bold hover:bg-(--txt-color) hover:text-(--bg-color)" href={group.repo} target="_blank" rel="noreferrer">
               <span className="fa-brands fa-github"></span>
             </a>
-            <a className="px-4 py-2 text-sm font-bold hover:bg-(--red-color) hover:text-(--bg-color)" href={`mailto:${group.email}`} target="_blank" rel="noreferrer">
+            <a className="px-4 py-2 text-sm font-bold hover:bg-(--txt-color) hover:text-(--bg-color)" href={`mailto:${group.email}`} target="_blank" rel="noreferrer">
               <span className="fa-regular fa-envelope"></span>
             </a>
           </div>
